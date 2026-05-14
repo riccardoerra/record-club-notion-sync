@@ -47,7 +47,10 @@ export const SCHEMA: Record<string, any> = {
 export function viewPayloads(databaseId: string, dataSourceId: string) {
 	const galleryConfig = {
 		type:         "gallery",
-		properties:   [{ property_id: "Artist", visible: true, card_property_width_mode: "full_line" }],
+		properties:   [
+			{ property_id: "title", visible: true },
+			{ property_id: "Artist", visible: true, card_property_width_mode: "full_line" },
+		],
 		cover:        { type: "page_cover" },
 		cover_size:   "medium",
 		cover_aspect: "cover",
