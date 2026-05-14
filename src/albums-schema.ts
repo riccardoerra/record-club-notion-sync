@@ -33,7 +33,7 @@ export const SCHEMA: Record<string, any> = {
 	Status:               { select: { options: STATUS_OPTIONS } },
 	Rating:               { select: { options: RATING_OPTIONS } },
 	"Listened Date":      { date: {} },
-	"Activity Date":      { date: {} },
+	"Added Date":         { date: {} },
 	Review:               { rich_text: {} },
 	"Release Date":       { date: {} },
 	"Album Type":         { select: { options: [] } },
@@ -58,7 +58,7 @@ export function viewPayloads(databaseId: string, dataSourceId: string) {
 			name: "Queue", type: "gallery",
 			configuration: galleryConfig,
 			filter: { property: "Status", select: { equals: "Queued" } },
-			sorts: [{ property: "Activity Date", direction: "descending" }],
+			sorts: [{ property: "Added Date", direction: "descending" }],
 		},
 		{
 			database_id: databaseId, data_source_id: dataSourceId,
@@ -71,7 +71,7 @@ export function viewPayloads(databaseId: string, dataSourceId: string) {
 			database_id: databaseId, data_source_id: dataSourceId,
 			name: "All Albums", type: "table",
 			configuration: { type: "table" },
-			sorts: [{ property: "Activity Date", direction: "descending" }],
+			sorts: [{ property: "Added Date", direction: "descending" }],
 		},
 	];
 }

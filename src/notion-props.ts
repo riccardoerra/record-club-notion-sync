@@ -31,7 +31,7 @@ export function buildAlbumProps(entry: ReleaseEntry) {
 		Kind:               { select: { name: entry.kind } },
 		Status:             { select: { name: entry.status } },
 	};
-	if (entry.activityDate) props["Activity Date"] = { date: { start: entry.activityDate } };
+	if (entry.activityDate) props["Added Date"] = { date: { start: entry.activityDate } };
 	if (entry.listenedDate) props["Listened Date"] = { date: { start: entry.listenedDate } };
 	if (entry.rating)       props.Rating           = { select: { name: entry.rating } };
 	if (entry.review)       props.Review           = richText(entry.review);
