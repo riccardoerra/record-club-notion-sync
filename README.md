@@ -29,6 +29,20 @@ npm run setup
 
 Setup asks for a Notion Personal Access Token and your record.club username, creates a `💿 Albums` database with Queue / Rotation / Listened / All Albums views, deploys the worker, and triggers the first sync.
 
+## Lazymode
+
+Paste this repo link into Claude Code, Codex, or another coding agent and ask:
+
+```text
+Set this up for me: https://github.com/riccardoerra/record-club-notion-sync
+
+Use my record.club username YOUR_USERNAME. Guide me through the Notion token / Notion Workers setup and deploy the worker.
+```
+
+The agent should clone the repo, install dependencies, run `npm run setup`, help you provide a Notion token, deploy the worker, and trigger the first sync.
+
+For listened/rated albums to sync, add the release to your record.club diary/reviews activity with a rating and listened date. Simply marking a release as listened does not emit the RSS event this worker uses.
+
 ## Maintenance
 
 ```bash
