@@ -120,7 +120,7 @@ function extractReview(content: string): string | null {
 	return text || null;
 }
 
-function releaseRegex(action: "queue" | "listened") {
+function releaseRegex(action: "queue" | "rotation" | "listened") {
 	if (action === "listened") {
 		return /^.+ listened to and rated an? (album|EP|single): '(.+)' by (.+) - ([★½]+)$/;
 	}
@@ -152,6 +152,18 @@ function parseReleaseTitle(title: string): { kind: ReleaseKind; status: ReleaseS
 			status: "Queued",
 			title: queue[2],
 			artist: queue[3],
+			rating: null,
+			ratingValue: null,
+		};
+	}
+
+	const rotation = releaseRegex("rotation").exec(title);
+	if (rotation) {
+		return {
+			kind: normalizeKind(rotation[1]),
+			status: "Listened",
+			title: rotation[2],
+			artist: rotation[3],
 			rating: null,
 			ratingValue: null,
 		};
