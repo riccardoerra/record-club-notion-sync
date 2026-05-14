@@ -17,6 +17,17 @@ Important: record.club only emits the listened/rated RSS item when the release i
 
 Metadata note: the worker does not scrape record.club release pages because those pages can be Cloudflare-protected outside a browser. MusicBrainz is used for stable server-side enrichment instead. Genres and external links depend on what MusicBrainz has for a release, so they are intentionally best-effort.
 
+## Direction of Sync
+
+This is a one-way sync from record.club activity into Notion. It cannot add
+albums to your record.club queue from Notion, Pitchfork, or any other external
+list because the public record.club feed is read-only and record.club does not
+provide a supported write API for queue changes.
+
+A separate importer could create Notion rows from another source, such as
+Pitchfork's weekly album lists, but those rows would only exist in Notion and
+would not update your record.club queue.
+
 ## Setup
 
 ```bash
