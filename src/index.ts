@@ -103,12 +103,7 @@ async function readExistingAlbums(notion: any): Promise<Map<string, ExistingEntr
 			start_cursor: cursor,
 		});
 		for (const p of r.results) {
-			const slug = (p.properties?.["Record Club Slug"]?.rich_text ?? [])
-				.map((t: any) => t.plain_text)
-				.join("")
-				.trim();
-			const canonical = p.properties?.["Canonical URI"]?.url ?? "";
-			const key = slug || canonical;
+			const key = albumKeyFromProps(p.properties ?? {});
 			if (!key) continue;
 			map.set(key, {
 				pageId: p.id,
@@ -118,6 +113,30 @@ async function readExistingAlbums(notion: any): Promise<Map<string, ExistingEntr
 		cursor = r.has_more ? r.next_cursor : undefined;
 	} while (cursor);
 	return map;
+}
+
+function plainText(prop: any): string {
+	return (prop?.rich_text ?? prop?.title ?? []).map((t: any) => t.plain_text).join("").trim();
+}
+
+function normalizeKeyPart(s: string): string {
+	return s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function albumKey(kind: string, artist: string, title: string): string {
+	return [kind, artist, title].map(normalizeKeyPart).join("::");
+}
+
+function albumKeyFromProps(props: any): string {
+	const title = plainText(props.Title);
+	const artist = plainText(props.Artist);
+	const kind = props.Kind?.select?.name ?? "";
+	if (!title || !artist || !kind) return "";
+	return albumKey(kind, artist, title);
+}
+
+function albumKeyFromEntry(entry: ReleaseEntry): string {
+	return albumKey(entry.kind, entry.artist, entry.title);
 }
 
 function shouldUpdate(existing: ExistingEntry, incoming: ReleaseEntry) {
@@ -174,7 +193,7 @@ worker.sync("recordClubSync", {
 			// Oldest first lets a later listened/rated item upgrade an earlier
 			// queue row during the same run.
 			for (const e of entries.reverse()) {
-				const key = e.slug || e.canonicalUrl;
+				const key = albumKeyFromEntry(e);
 				const ex = existing.get(key);
 				try {
 					if (!ex) {

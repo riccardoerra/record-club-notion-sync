@@ -66,7 +66,7 @@ async function* pages(notion: Client, dataSourceId: string): AsyncGenerator<Albu
 				title,
 				artist,
 				kind: normalizeKind(props.Kind?.select?.name),
-				hasMeta: Boolean(textProp(props["MusicBrainz RGID"])),
+				hasMeta: Boolean(props["Release Date"]?.date || props["Release Year"]?.number),
 				hasCover: Boolean(p.cover),
 			};
 		}

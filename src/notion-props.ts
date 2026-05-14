@@ -30,9 +30,6 @@ export function buildAlbumProps(entry: ReleaseEntry) {
 		Artist:             richText(entry.artist),
 		Kind:               { select: { name: entry.kind } },
 		Status:             { select: { name: entry.status } },
-		"Record Club URI":  { url: entry.url },
-		"Canonical URI":    { url: entry.canonicalUrl },
-		"Record Club Slug": richText(entry.slug),
 	};
 	if (entry.activityDate) props["Activity Date"] = { date: { start: entry.activityDate } };
 	if (entry.listenedDate) props["Listened Date"] = { date: { start: entry.listenedDate } };
@@ -46,23 +43,13 @@ export function buildMetaProps(meta: AlbumMeta | null) {
 	if (!meta) return {};
 	const props: Record<string, any> = {
 		"Release Year":     numberProp(meta.releaseYear),
-		"Secondary Types":  multiSelect(meta.secondaryTypes),
 		Genres:             multiSelect(meta.genres),
-		Tags:               multiSelect(meta.tags),
 		Labels:             multiSelect(meta.labels),
-		Country:            richText(meta.country),
-		Barcode:            richText(meta.barcode),
 		"Track Count":      numberProp(meta.trackCount),
 		"Duration minutes": numberProp(meta.durationMins),
-		"MusicBrainz RGID": richText(meta.musicBrainzReleaseGroupId),
-		"MusicBrainz RID":  richText(meta.musicBrainzReleaseId),
-		MusicBrainz:        urlProp(meta.musicBrainzUrl),
 		Spotify:            urlProp(meta.spotifyUrl),
-		Bandcamp:           urlProp(meta.bandcampUrl),
-		"MB Match Score":   numberProp(meta.matchScore),
 	};
 	if (meta.releaseDate) props["Release Date"] = { date: { start: meta.releaseDate } };
 	if (meta.albumType) props["Album Type"] = { select: { name: meta.albumType } };
 	return props;
 }
-
