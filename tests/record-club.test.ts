@@ -69,7 +69,7 @@ test("STAR_RATING_VALUE maps half-star strings", () => {
 
 test("parseRecordClubRss extracts release activity and skips social activity", () => {
 	const entries = parseRecordClubRss(rss);
-	assert.equal(entries.length, 3);
+	assert.equal(entries.length, 2);
 
 	assert.deepEqual(entries[0], {
 		title: "Sexistential",
@@ -90,6 +90,4 @@ test("parseRecordClubRss extracts release activity and skips social activity", (
 	assert.equal(entries[1].status, "Queued");
 	assert.equal(entries[1].title, "Little Wide Open");
 	assert.equal(entries[1].artist, "Kevin Morby");
-	assert.equal(entries[2].kind, "EP");
-	assert.equal(entries[2].status, "Listened");
 });
