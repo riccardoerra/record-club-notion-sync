@@ -22,9 +22,9 @@ export const STATUS_OPTIONS = [
 ];
 
 export const KIND_OPTIONS = [
-	{ name: "album",  color: "default" as const },
+	{ name: "Album",  color: "default" as const },
 	{ name: "EP",     color: "gray"    as const },
-	{ name: "single", color: "brown"   as const },
+	{ name: "Single", color: "brown"   as const },
 ];
 
 export const SCHEMA: Record<string, any> = {

@@ -6,7 +6,7 @@
  * release activity needed for the Notion album database.
  */
 
-export type ReleaseKind = "album" | "EP" | "single";
+export type ReleaseKind = "Album" | "EP" | "Single";
 export type ReleaseStatus = "Queued" | "Rotation" | "Listened";
 
 export interface ReleaseEntry {
@@ -97,7 +97,7 @@ export function slugFromReleaseUrl(url: string): string {
 
 function kindPath(kind: ReleaseKind) {
 	if (kind === "EP") return "eps";
-	if (kind === "single") return "singles";
+	if (kind === "Single") return "singles";
 	return "albums";
 }
 
@@ -128,7 +128,7 @@ function releaseRegex(action: "queue" | "rotation" | "listened") {
 }
 
 function normalizeKind(raw: string): ReleaseKind {
-	return raw === "EP" ? "EP" : raw === "single" ? "single" : "album";
+	return raw === "EP" ? "EP" : raw === "single" ? "Single" : "Album";
 }
 
 function parseReleaseTitle(title: string): { kind: ReleaseKind; status: ReleaseStatus; title: string; artist: string; rating: string | null; ratingValue: number | null } | null {
@@ -206,4 +206,3 @@ export function statusRank(status: ReleaseStatus): number {
 	if (status === "Rotation") return 2;
 	return 1;
 }
-

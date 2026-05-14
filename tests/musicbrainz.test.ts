@@ -62,7 +62,7 @@ test("buildAlbumMeta maps MusicBrainz release metadata", () => {
 
 test("fetchAlbumMeta searches release groups and fetches the best release", async () => {
 	const calls: string[] = [];
-	const meta = await fetchAlbumMeta("Sexistential", "Robyn", "album", async (url) => {
+	const meta = await fetchAlbumMeta("Sexistential", "Robyn", "Album", async (url) => {
 		calls.push(url);
 		if (url.includes("/release-group?")) {
 			return { "release-groups": [{ id: "rgid", score: 100, "primary-type": "Album" }] };

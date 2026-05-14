@@ -24,8 +24,8 @@ function textProp(prop: any): string {
 
 function normalizeKind(name: string | null | undefined): ReleaseKind {
 	if (name === "EP") return "EP";
-	if (name === "single") return "single";
-	return "album";
+	if (name === "Single" || name === "single") return "Single";
+	return "Album";
 }
 
 async function ensureMetadataProperties(notion: Client, dataSourceId: string) {

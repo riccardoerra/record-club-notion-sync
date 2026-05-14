@@ -74,7 +74,7 @@ test("parseRecordClubRss extracts release activity and skips social activity", (
 	assert.deepEqual(entries[0], {
 		title: "Sexistential",
 		artist: "Robyn",
-		kind: "album",
+		kind: "Album",
 		status: "Listened",
 		url: "https://record.club/riccardoerra/releases/albums/robyn-sexistential",
 		canonicalUrl: "https://record.club/releases/albums/robyn-sexistential",
@@ -93,4 +93,3 @@ test("parseRecordClubRss extracts release activity and skips social activity", (
 	assert.equal(entries[2].kind, "EP");
 	assert.equal(entries[2].status, "Rotation");
 });
-

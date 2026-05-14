@@ -41,7 +41,7 @@ function queryValue(s: string): string {
 
 function normalizeKind(kind: ReleaseKind): string {
 	if (kind === "EP") return "EP";
-	if (kind === "single") return "Single";
+	if (kind === "Single") return "Single";
 	return "Album";
 }
 
