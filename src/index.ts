@@ -1,8 +1,8 @@
 /**
  * record.club → Notion sync.
  *
- * Daily worker that pulls a public record.club user RSS feed and writes queue,
- * rotation, and listened/rated release activity into an Albums database.
+ * Daily worker that pulls a public record.club user RSS feed and writes queue
+ * and listened/rated release activity into an Albums database.
  *
  * Configuration (worker secrets via `ntn workers env push`)
  * ─────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ function albumKeyFromEntry(entry: ReleaseEntry): string {
 }
 
 function shouldUpdate(existing: ExistingEntry, incoming: ReleaseEntry) {
-	const currentRank = existing.status === "Listened" ? 3 : existing.status === "Rotation" ? 2 : 1;
+	const currentRank = existing.status === "Listened" ? 3 : 1;
 	return statusRank(incoming.status) >= currentRank;
 }
 

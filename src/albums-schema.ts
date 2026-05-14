@@ -17,7 +17,6 @@ export const RATING_OPTIONS = [
 
 export const STATUS_OPTIONS = [
 	{ name: "Queued",   color: "blue"   as const },
-	{ name: "Rotation", color: "purple" as const },
 	{ name: "Listened", color: "green"  as const },
 ];
 
@@ -59,13 +58,6 @@ export function viewPayloads(databaseId: string, dataSourceId: string) {
 			name: "Queue", type: "gallery",
 			configuration: galleryConfig,
 			filter: { property: "Status", select: { equals: "Queued" } },
-			sorts: [{ property: "Activity Date", direction: "descending" }],
-		},
-		{
-			database_id: databaseId, data_source_id: dataSourceId,
-			name: "Rotation", type: "gallery",
-			configuration: galleryConfig,
-			filter: { property: "Status", select: { equals: "Rotation" } },
 			sorts: [{ property: "Activity Date", direction: "descending" }],
 		},
 		{

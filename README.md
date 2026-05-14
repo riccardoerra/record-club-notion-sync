@@ -1,13 +1,12 @@
 # record.club → Notion
 
-Sync your public record.club activity RSS feed into a Notion Albums database. The worker imports queue additions, rotation additions, and listened/rated diary activity with cover images, ratings, listened dates, and review text when present. New albums are enriched with MusicBrainz metadata when a confident match is available.
+Sync your public record.club activity RSS feed into a Notion Albums database. The worker imports queue additions and listened/rated diary activity with cover images, ratings, listened dates, and review text when present. New albums are enriched with MusicBrainz metadata when a confident match is available.
 
 This project is adapted from Brian Lovin's [`letterboxd-notion-sync`](https://github.com/brianlovin/letterboxd-notion-sync) Notion Worker pattern. The source integration and Notion schema have been replaced for record.club albums.
 
 ## What Syncs
 
 - Queue activity → `Status = Queued`
-- Rotation activity → `Status = Rotation`
 - Listened/rated diary activity → `Status = Listened`
 - MusicBrainz enrichment → release date/year, album type, labels, track count, duration, genres when available, Spotify link, and fallback cover art.
 - Matching is based on kind, artist, and title, so a later listened/rated entry updates an earlier queued row.
@@ -30,7 +29,7 @@ npm install
 npm run setup
 ```
 
-Setup asks for a Notion Personal Access Token and your record.club username, creates a `💿 Albums` database with Queue / Rotation / Listened / All Albums views, deploys the worker, and triggers the first sync.
+Setup asks for a Notion Personal Access Token and your record.club username, creates a `💿 Albums` database with Queue / Listened / All Albums views, deploys the worker, and triggers the first sync.
 
 ## Backfill Metadata
 

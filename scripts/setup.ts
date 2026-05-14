@@ -250,7 +250,7 @@ async function main() {
 				fail(`View "${v.name}" failed: ${e.message}`);
 			}
 		}
-		ok(`Views: Queue, Rotation, Listened, All Albums`);
+		ok(`Views: Queue, Listened, All Albums`);
 
 		// Delete the auto-created default view.
 		try {

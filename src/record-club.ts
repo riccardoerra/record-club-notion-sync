@@ -2,12 +2,12 @@
  * Pure parsers for record.club RSS feeds.
  *
  * record.club exposes public user activity at /USER/rss. The feed includes
- * queue, rotation, list, follow, and listened/rated activity. We only model
+ * queue, list, follow, and listened/rated activity. We only model
  * release activity needed for the Notion album database.
  */
 
 export type ReleaseKind = "Album" | "EP" | "Single";
-export type ReleaseStatus = "Queued" | "Rotation" | "Listened";
+export type ReleaseStatus = "Queued" | "Listened";
 
 export interface ReleaseEntry {
 	title:        string;
@@ -120,7 +120,7 @@ function extractReview(content: string): string | null {
 	return text || null;
 }
 
-function releaseRegex(action: "queue" | "rotation" | "listened") {
+function releaseRegex(action: "queue" | "listened") {
 	if (action === "listened") {
 		return /^.+ listened to and rated an? (album|EP|single): '(.+)' by (.+) - ([★½]+)$/;
 	}
@@ -152,18 +152,6 @@ function parseReleaseTitle(title: string): { kind: ReleaseKind; status: ReleaseS
 			status: "Queued",
 			title: queue[2],
 			artist: queue[3],
-			rating: null,
-			ratingValue: null,
-		};
-	}
-
-	const rotation = releaseRegex("rotation").exec(title);
-	if (rotation) {
-		return {
-			kind: normalizeKind(rotation[1]),
-			status: "Rotation",
-			title: rotation[2],
-			artist: rotation[3],
 			rating: null,
 			ratingValue: null,
 		};
@@ -203,6 +191,5 @@ export function parseRecordClubRss(xml: string): ReleaseEntry[] {
 
 export function statusRank(status: ReleaseStatus): number {
 	if (status === "Listened") return 3;
-	if (status === "Rotation") return 2;
 	return 1;
 }
