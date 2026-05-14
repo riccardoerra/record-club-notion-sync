@@ -40,6 +40,23 @@ export const SCHEMA: Record<string, any> = {
 	"Record Club URI":    { url: {} },
 	"Canonical URI":      { url: {} },
 	"Record Club Slug":   { rich_text: {} },
+	"Release Date":       { date: {} },
+	"Release Year":       { number: { format: "number" } },
+	"Album Type":         { select: { options: [] } },
+	"Secondary Types":    { multi_select: { options: [] } },
+	Genres:               { multi_select: { options: [] } },
+	Tags:                 { multi_select: { options: [] } },
+	Labels:               { multi_select: { options: [] } },
+	Country:              { rich_text: {} },
+	Barcode:              { rich_text: {} },
+	"Track Count":        { number: { format: "number" } },
+	"Duration minutes":   { number: { format: "number" } },
+	"MusicBrainz RGID":   { rich_text: {} },
+	"MusicBrainz RID":    { rich_text: {} },
+	MusicBrainz:          { url: {} },
+	Spotify:              { url: {} },
+	Bandcamp:             { url: {} },
+	"MB Match Score":     { number: { format: "number" } },
 };
 
 export function viewPayloads(databaseId: string, dataSourceId: string) {
@@ -80,4 +97,3 @@ export function viewPayloads(databaseId: string, dataSourceId: string) {
 		},
 	];
 }
-

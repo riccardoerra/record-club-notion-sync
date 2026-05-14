@@ -20,6 +20,8 @@ import {
 	statusRank,
 	type ReleaseEntry,
 } from "./record-club.js";
+import { fetchAlbumMeta } from "./musicbrainz.js";
+import { buildAlbumProps, buildMetaProps } from "./notion-props.js";
 
 // ---------- Config ---------------------------------------------------------
 
@@ -60,6 +62,11 @@ const syncRuns = worker.database("syncRuns", {
 const recordClub = worker.pacer("recordClub", {
 	allowedRequests: 2,
 	intervalMs: 1000,
+});
+
+const musicBrainz = worker.pacer("musicBrainz", {
+	allowedRequests: 1,
+	intervalMs: 1200,
 });
 
 const NOTES_MAX_CHARS = 1900;
@@ -113,32 +120,6 @@ async function readExistingAlbums(notion: any): Promise<Map<string, ExistingEntr
 	return map;
 }
 
-// ---------- Property payload builders -------------------------------------
-
-function richText(s: string | null) {
-	return s
-		? { rich_text: [{ type: "text", text: { content: s.slice(0, 2000) } }] }
-		: { rich_text: [] };
-}
-
-function buildProps(entry: ReleaseEntry) {
-	const props: Record<string, any> = {
-		Title:              { title: [{ text: { content: entry.title } }] },
-		Artist:             richText(entry.artist),
-		Kind:               { select: { name: entry.kind } },
-		Status:             { select: { name: entry.status } },
-		"Record Club URI":  { url: entry.url },
-		"Canonical URI":    { url: entry.canonicalUrl },
-		"Record Club Slug": richText(entry.slug),
-	};
-	if (entry.activityDate) props["Activity Date"] = { date: { start: entry.activityDate } };
-	if (entry.listenedDate) props["Listened Date"] = { date: { start: entry.listenedDate } };
-	if (entry.rating)       props.Rating           = { select: { name: entry.rating } };
-	if (entry.ratingValue)  props["Rating Value"]  = { number: entry.ratingValue };
-	if (entry.review)       props.Review           = richText(entry.review);
-	return props;
-}
-
 function shouldUpdate(existing: ExistingEntry, incoming: ReleaseEntry) {
 	const currentRank = existing.status === "Listened" ? 3 : existing.status === "Rotation" ? 2 : 1;
 	return statusRank(incoming.status) >= currentRank;
@@ -147,6 +128,15 @@ function shouldUpdate(existing: ExistingEntry, incoming: ReleaseEntry) {
 function truncate(s: string, n = 80): string {
 	if (!s) return "";
 	return s.length > n ? s.slice(0, n) + "..." : s;
+}
+
+async function enrichAlbum(e: ReleaseEntry) {
+	try {
+		await musicBrainz.wait();
+		return await fetchAlbumMeta(e.title, e.artist, e.kind);
+	} catch {
+		return null;
+	}
 }
 
 // ---------- The sync -------------------------------------------------------
@@ -188,20 +178,24 @@ worker.sync("recordClubSync", {
 				const ex = existing.get(key);
 				try {
 					if (!ex) {
+						const meta = await enrichAlbum(e);
 						const params: any = {
 							parent: { database_id: ALBUMS_DATABASE_ID },
-							properties: buildProps(e),
+							properties: { ...buildAlbumProps(e), ...buildMetaProps(meta) },
 						};
-						if (e.cover) params.cover = { type: "external", external: { url: e.cover } };
+						const cover = e.cover ?? meta?.cover;
+						if (cover) params.cover = { type: "external", external: { url: cover } };
 						const created = await notion.pages.create(params);
 						existing.set(key, { pageId: created.id, status: e.status });
 						added++;
 					} else if (shouldUpdate(ex, e)) {
+						const meta = await enrichAlbum(e);
 						const params: any = {
 							page_id: ex.pageId,
-							properties: buildProps(e),
+							properties: { ...buildAlbumProps(e), ...buildMetaProps(meta) },
 						};
-						if (e.cover) params.cover = { type: "external", external: { url: e.cover } };
+						const cover = e.cover ?? meta?.cover;
+						if (cover) params.cover = { type: "external", external: { url: cover } };
 						await notion.pages.update(params);
 						existing.set(key, { pageId: ex.pageId, status: e.status });
 						updated++;
@@ -244,4 +238,3 @@ function logRun(
 		hasMore: false,
 	};
 }
-
