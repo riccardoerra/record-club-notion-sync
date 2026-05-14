@@ -34,7 +34,6 @@ export function buildAlbumProps(entry: ReleaseEntry) {
 	if (entry.activityDate) props["Activity Date"] = { date: { start: entry.activityDate } };
 	if (entry.listenedDate) props["Listened Date"] = { date: { start: entry.listenedDate } };
 	if (entry.rating)       props.Rating           = { select: { name: entry.rating } };
-	if (entry.ratingValue)  props["Rating Value"]  = { number: entry.ratingValue };
 	if (entry.review)       props.Review           = richText(entry.review);
 	return props;
 }
@@ -42,7 +41,6 @@ export function buildAlbumProps(entry: ReleaseEntry) {
 export function buildMetaProps(meta: AlbumMeta | null) {
 	if (!meta) return {};
 	const props: Record<string, any> = {
-		"Release Year":     numberProp(meta.releaseYear),
 		Genres:             multiSelect(meta.genres),
 		Labels:             multiSelect(meta.labels),
 		"Track Count":      numberProp(meta.trackCount),
