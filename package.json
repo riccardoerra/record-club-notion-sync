@@ -1,0 +1,25 @@
+{
+	"name": "record-club-notion-sync",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Sync your record.club queue, rotation, and listened ratings into a Notion database.",
+	"scripts": {
+		"build": "tsc",
+		"check": "tsc -p tsconfig.check.json",
+		"test": "tsx --test tests/*.test.ts",
+		"setup": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/setup.ts"
+	},
+	"engines": {
+		"node": ">=22.0.0",
+		"npm": ">=10.9.2"
+	},
+	"devDependencies": {
+		"@types/node": "^22.9.0",
+		"tsx": "^4.20.6",
+		"typescript": "^5.8.0"
+	},
+	"dependencies": {
+		"@notionhq/client": "^2.3.0",
+		"@notionhq/workers": ">=0.3.0"
+	}
+}
