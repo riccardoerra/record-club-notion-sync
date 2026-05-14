@@ -7,6 +7,7 @@ import { SCHEMA } from "../src/albums-schema.js";
 import { fetchAlbumMeta, MUSICBRAINZ_USER_AGENT } from "../src/musicbrainz.js";
 import { buildMetaProps } from "../src/notion-props.js";
 import type { ReleaseKind } from "../src/record-club.js";
+import { searchSpotifyAlbum } from "../src/spotify.js";
 import { notionClient, requireEnv, resolveDataSourceId } from "./lib.js";
 
 interface AlbumPage {
@@ -16,6 +17,7 @@ interface AlbumPage {
 	kind: ReleaseKind;
 	hasMeta: boolean;
 	hasCover: boolean;
+	hasSpotify: boolean;
 }
 
 function textProp(prop: any): string {
@@ -68,6 +70,7 @@ async function* pages(notion: Client, dataSourceId: string): AsyncGenerator<Albu
 				kind: normalizeKind(props.Kind?.select?.name),
 				hasMeta: Boolean(props["Release Date"]?.date),
 				hasCover: Boolean(p.cover),
+				hasSpotify: Boolean(props.Spotify?.url),
 			};
 		}
 		cursor = r.has_more ? r.next_cursor ?? undefined : undefined;
@@ -103,6 +106,9 @@ async function main() {
 				console.log(`[${scanned}] no match: ${page.artist} - ${page.title}`);
 				failed++;
 				continue;
+			}
+			if (!meta.spotifyUrl && !page.hasSpotify) {
+				meta.spotifyUrl = (await searchSpotifyAlbum(page.title, page.artist))?.url ?? null;
 			}
 
 			const body: any = {

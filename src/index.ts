@@ -22,6 +22,7 @@ import {
 } from "./record-club.js";
 import { fetchAlbumMeta } from "./musicbrainz.js";
 import { buildAlbumProps, buildMetaProps } from "./notion-props.js";
+import { searchSpotifyAlbum } from "./spotify.js";
 
 // ---------- Config ---------------------------------------------------------
 
@@ -152,7 +153,11 @@ function truncate(s: string, n = 80): string {
 async function enrichAlbum(e: ReleaseEntry) {
 	try {
 		await musicBrainz.wait();
-		return await fetchAlbumMeta(e.title, e.artist, e.kind);
+		const meta = await fetchAlbumMeta(e.title, e.artist, e.kind);
+		if (meta && !meta.spotifyUrl) {
+			meta.spotifyUrl = (await searchSpotifyAlbum(e.title, e.artist))?.url ?? null;
+		}
+		return meta;
 	} catch {
 		return null;
 	}
