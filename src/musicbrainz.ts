@@ -45,6 +45,11 @@ function normalizeKind(kind: ReleaseKind): string {
 	return "Album";
 }
 
+function artistNames(entity: any): string[] {
+	return uniq((entity?.["artist-credit"] ?? [])
+		.map((credit: any) => credit.artist?.name ?? credit.name));
+}
+
 function externalUrl(relations: any[] | undefined, host: string): string | null {
 	const rel = (relations ?? []).find((r: any) => typeof r.url?.resource === "string" && r.url.resource.includes(host));
 	return rel?.url?.resource ?? null;
@@ -106,6 +111,20 @@ export function buildAlbumMeta(releaseGroup: any, release: any | null): AlbumMet
 	};
 }
 
+export async function fetchArtistGenres(
+	artist: string,
+	fetchJson: FetchJson = defaultFetchJson,
+): Promise<string[]> {
+	const query = `artist:"${queryValue(artist)}"`;
+	const searchUrl = `${MB_BASE}/artist?fmt=json&limit=1&query=${encodeURIComponent(query)}`;
+	const search = await fetchJson(searchUrl);
+	const hit = search.artists?.[0];
+	if (!hit?.id || (typeof hit.score === "number" && hit.score < 90)) return [];
+	const artistUrl = `${MB_BASE}/artist/${hit.id}?fmt=json&inc=genres+tags`;
+	const full = await fetchJson(artistUrl);
+	return uniq((full.genres ?? []).map((g: any) => g.name)).slice(0, 8);
+}
+
 export async function fetchAlbumMeta(
 	title: string,
 	artist: string,
@@ -128,6 +147,18 @@ export async function fetchAlbumMeta(
 		release = await fetchJson(releaseUrl);
 	}
 	const meta = buildAlbumMeta({ ...hit, ...releaseGroup, score: hit.score ?? releaseGroup.score ?? null }, release);
+	if (meta.genres.length === 0) {
+		for (const name of artistNames(releaseGroup).slice(0, 3)) {
+			const genres = await fetchArtistGenres(name, fetchJson);
+			for (const genre of genres) {
+				if (!meta.genres.includes(genre)) meta.genres.push(genre);
+			}
+			if (meta.genres.length >= 8) {
+				meta.genres = meta.genres.slice(0, 8);
+				break;
+			}
+		}
+	}
 	if (meta.musicBrainzReleaseId) {
 		try {
 			const r = await fetch(`${CAA_BASE}/release/${meta.musicBrainzReleaseId}/front-500`, {

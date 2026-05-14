@@ -4,6 +4,7 @@ import * as assert from "node:assert/strict";
 import {
 	buildAlbumMeta,
 	fetchAlbumMeta,
+	fetchArtistGenres,
 	selectBestRelease,
 } from "../src/musicbrainz";
 
@@ -85,4 +86,49 @@ test("fetchAlbumMeta searches release groups and fetches the best release", asyn
 	assert.equal(meta?.trackCount, 1);
 	assert.equal(calls.length, 3);
 	assert.match(calls[0], /Sexistential/);
+});
+
+test("fetchArtistGenres returns high-confidence artist genres", async () => {
+	const genres = await fetchArtistGenres("Kevin Morby", async (url) => {
+		if (url.includes("/artist?")) {
+			return { artists: [{ id: "artist-id", score: 100 }] };
+		}
+		if (url.includes("/artist/artist-id")) {
+			return { genres: [{ name: "folk rock" }, { name: "indie folk" }] };
+		}
+		throw new Error(`unexpected ${url}`);
+	});
+
+	assert.deepEqual(genres, ["folk rock", "indie folk"]);
+});
+
+test("fetchAlbumMeta falls back to artist genres when album genres are empty", async () => {
+	const calls: string[] = [];
+	const meta = await fetchAlbumMeta("Little Wide Open", "Kevin Morby", "Album", async (url) => {
+		calls.push(url);
+		if (url.includes("/release-group?")) {
+			return { "release-groups": [{ id: "rgid", score: 100, "primary-type": "Album" }] };
+		}
+		if (url.includes("/release-group/rgid")) {
+			return {
+				id: "rgid",
+				"primary-type": "Album",
+				"artist-credit": [{ artist: { name: "Kevin Morby" } }],
+				releases: [{ id: "rid", status: "Official", date: "2026-05-15" }],
+			};
+		}
+		if (url.includes("/release/rid")) {
+			return { id: "rid", date: "2026-05-15", media: [] };
+		}
+		if (url.includes("/artist?")) {
+			return { artists: [{ id: "artist-id", score: 100 }] };
+		}
+		if (url.includes("/artist/artist-id")) {
+			return { genres: [{ name: "folk rock" }, { name: "indie folk" }] };
+		}
+		throw new Error(`unexpected ${url}`);
+	});
+
+	assert.deepEqual(meta?.genres, ["folk rock", "indie folk"]);
+	assert.equal(calls.length, 5);
 });
