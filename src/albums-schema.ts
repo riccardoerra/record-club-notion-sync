@@ -68,7 +68,12 @@ export function viewPayloads(databaseId: string, dataSourceId: string) {
 			database_id: databaseId, data_source_id: dataSourceId,
 			name: "Listened", type: "gallery",
 			configuration: galleryConfig,
-			filter: { property: "Status", select: { equals: "Listened" } },
+			filter: {
+				and: [
+					{ property: "Status", select: { equals: "Listened" } },
+					{ property: "Rating", select: { is_not_empty: true } },
+				],
+			},
 			sorts: [{ property: "Listened Date", direction: "descending" }],
 		},
 		{
