@@ -18,6 +18,7 @@ import { SCHEMA, viewPayloads } from "../src/albums-schema";
 
 const FORCE      = process.argv.includes("--force");
 const SKIP_DEPLOY = process.argv.includes("--no-deploy"); // useful for testing
+const PREVIEW    = process.argv.includes("--preview");
 
 // ---------- Pretty-print helpers ------------------------------------------
 
@@ -51,6 +52,13 @@ async function prompt(rl: readline.Interface, question: string, fallback?: strin
 	const suffix = fallback ? C.dim(` [${fallback}]`) : "";
 	const answer = (await rl.question(`  ${question}${suffix}: `)).trim();
 	return answer || fallback || "";
+}
+
+async function confirm(rl: readline.Interface, question: string, fallback = true): Promise<boolean> {
+	const hint = fallback ? "Y/n" : "y/N";
+	const answer = (await rl.question(`  ${question} ${C.dim(`[${hint}]`)}: `)).trim().toLowerCase();
+	if (!answer) return fallback;
+	return ["y", "yes"].includes(answer);
 }
 
 // ---------- ntn shell-out helpers -----------------------------------------
@@ -108,9 +116,72 @@ async function checkRecordClubUser(user: string): Promise<{ ok: boolean; reason?
 	return { ok: true, itemCount: items };
 }
 
+async function checkSpotifyCredentials(clientId: string, clientSecret: string): Promise<{ ok: boolean; reason?: string }> {
+	const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+	const r = await fetch("https://accounts.spotify.com/api/token", {
+		method:  "POST",
+		headers: {
+			"Authorization": `Basic ${auth}`,
+			"Content-Type":  "application/x-www-form-urlencoded",
+		},
+		body: "grant_type=client_credentials",
+	});
+	if (r.ok) return { ok: true };
+	const body = await r.text();
+	return { ok: false, reason: `Spotify returned ${r.status}${body ? ` (${body.slice(0, 120)})` : ""}` };
+}
+
+function previewSetup() {
+	console.log(C.bold("\nrecord.club → Notion setup preview"));
+	console.log(C.dim("────────────────────────────────"));
+	console.log(`
+1. Notion Workers
+   - Check that the ntn CLI is installed.
+   - If you are not logged in, open the Notion login flow.
+
+2. Notion access token
+   - Ask for a token from https://notion.so/developers/tokens.
+   - Validate it with Notion.
+   - If it is an integration token, ask for a parent page URL.
+
+3. record.club username
+   - Ask for your username.
+   - Fetch https://record.club/YOUR_USERNAME/rss to confirm the public feed works.
+
+4. Spotify links (optional)
+   - Ask whether you want Spotify links.
+   - If yes, ask for Spotify Client ID and Client Secret.
+   - Validate them with Spotify.
+   - If skipped, the sync still works without Spotify links.
+
+5. Albums database
+   - Reuse ALBUMS_DATABASE_ID from .env if present.
+   - Otherwise create a new "💿 Albums" database.
+   - Create Queue, Listened, and All Albums views.
+
+6. Local configuration
+   - Write .env with NOTION_API_TOKEN, RECORD_CLUB_USER, ALBUMS_DATABASE_ID,
+     and optional SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET.
+
+7. Deploy
+   - Deploy the Notion Worker.
+   - Push env vars to the worker.
+   - Trigger the first sync.
+
+Result:
+   - You get a Notion database URL.
+   - Future syncs run daily.
+`);
+}
+
 // ---------- Main -----------------------------------------------------------
 
 async function main() {
+	if (PREVIEW) {
+		previewSetup();
+		return;
+	}
+
 	console.log(C.bold("\nrecord.club → Notion setup"));
 	console.log(C.dim("─────────────────────────"));
 
@@ -176,7 +247,39 @@ async function main() {
 		fail(`${check.reason} — try again`);
 	}
 
-	// ---------- Step 3 — Database + views ----------
+	// ---------- Step 3 — Spotify credentials ----------
+	step("Spotify links");
+	let spotifyClientId     = existing.SPOTIFY_CLIENT_ID ?? "";
+	let spotifyClientSecret = existing.SPOTIFY_CLIENT_SECRET ?? "";
+	const hasSpotify = Boolean(spotifyClientId && spotifyClientSecret);
+	const useSpotify = await confirm(
+		rl,
+		hasSpotify ? "Keep existing Spotify credentials for Spotify links?" : "Add Spotify credentials for Spotify links?",
+		hasSpotify,
+	);
+	if (useSpotify) {
+		while (true) {
+			spotifyClientId = await prompt(rl, "Spotify Client ID", spotifyClientId);
+			spotifyClientSecret = await prompt(rl, "Spotify Client Secret", spotifyClientSecret ? "keep existing" : undefined);
+			if (spotifyClientSecret === "keep existing") spotifyClientSecret = existing.SPOTIFY_CLIENT_SECRET ?? "";
+			if (!spotifyClientId || !spotifyClientSecret) {
+				fail("Both Spotify Client ID and Client Secret are required. Leave Spotify disabled if you want to skip this.");
+				continue;
+			}
+			const check = await checkSpotifyCredentials(spotifyClientId, spotifyClientSecret);
+			if (check.ok) {
+				ok("Spotify credentials validated");
+				break;
+			}
+			fail(`${check.reason} — try again, or press Ctrl+C and re-run setup without Spotify`);
+		}
+	} else {
+		spotifyClientId = "";
+		spotifyClientSecret = "";
+		info("Skipping Spotify. Albums will still sync; Spotify links will be best-effort from MusicBrainz only.");
+	}
+
+	// ---------- Step 4 — Database + views ----------
 	step("Creating database");
 	let databaseId   = existing.ALBUMS_DATABASE_ID ?? "";
 	let dataSourceId = "";
@@ -238,6 +341,10 @@ async function main() {
 			NOTION_API_TOKEN:   token,
 			RECORD_CLUB_USER:   recordClubUser,
 			ALBUMS_DATABASE_ID: databaseId,
+			...(spotifyClientId && spotifyClientSecret ? {
+				SPOTIFY_CLIENT_ID:     spotifyClientId,
+				SPOTIFY_CLIENT_SECRET: spotifyClientSecret,
+			} : {}),
 		});
 
 		// Create our three views.
@@ -273,11 +380,15 @@ async function main() {
 		NOTION_API_TOKEN:   token,
 		RECORD_CLUB_USER:   recordClubUser,
 		ALBUMS_DATABASE_ID: databaseId,
+		...(spotifyClientId && spotifyClientSecret ? {
+			SPOTIFY_CLIENT_ID:     spotifyClientId,
+			SPOTIFY_CLIENT_SECRET: spotifyClientSecret,
+		} : {}),
 	});
 
 	rl.close();
 
-	// ---------- Step 4 — Deploy worker ----------
+	// ---------- Step 5 — Deploy worker ----------
 	step("Deploying worker");
 
 	if (SKIP_DEPLOY) {

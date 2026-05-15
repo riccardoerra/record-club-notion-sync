@@ -40,7 +40,13 @@ npm install
 npm run setup
 ```
 
-Setup asks for a Notion Personal Access Token and your record.club username, creates a `💿 Albums` database with Queue / Listened / All Albums views, deploys the worker, and triggers the first sync.
+Setup asks for a Notion Personal Access Token, your record.club username, and optional Spotify credentials. It creates a `💿 Albums` database with Queue / Listened / All Albums views, writes `.env`, deploys the worker, and triggers the first sync.
+
+To preview the setup flow without changing anything:
+
+```bash
+npm run setup:preview
+```
 
 ## Backfill Metadata
 

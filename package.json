@@ -8,6 +8,7 @@
 		"check": "tsc -p tsconfig.check.json",
 		"test": "tsx --test tests/*.test.ts",
 		"setup": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/setup.ts",
+		"setup:preview": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/setup.ts --preview",
 		"backfill": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/backfill.ts"
 	},
 	"engines": {
