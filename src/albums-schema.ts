@@ -36,7 +36,6 @@ export const SCHEMA: Record<string, any> = {
 	"Added Date":         { date: {} },
 	Review:               { rich_text: {} },
 	"Release Date":       { date: {} },
-	"Album Type":         { select: { options: [] } },
 	Genres:               { multi_select: { options: [] } },
 	Labels:               { multi_select: { options: [] } },
 	"Track Count":        { number: { format: "number" } },

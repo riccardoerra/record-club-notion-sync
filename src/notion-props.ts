@@ -48,6 +48,5 @@ export function buildMetaProps(meta: AlbumMeta | null) {
 		Spotify:            urlProp(meta.spotifyUrl),
 	};
 	if (meta.releaseDate) props["Release Date"] = { date: { start: meta.releaseDate } };
-	if (meta.albumType) props["Album Type"] = { select: { name: meta.albumType } };
 	return props;
 }
