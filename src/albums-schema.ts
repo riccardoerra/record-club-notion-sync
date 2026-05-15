@@ -30,18 +30,34 @@ export const SCHEMA: Record<string, any> = {
 	Title:                { title: {} },
 	Artist:               { rich_text: {} },
 	Kind:                 { select: { options: KIND_OPTIONS } },
-	Status:               { select: { options: STATUS_OPTIONS } },
-	Rating:               { select: { options: RATING_OPTIONS } },
-	"Listened Date":      { date: {} },
-	"Added Date":         { date: {} },
-	Review:               { rich_text: {} },
 	"Release Date":       { date: {} },
-	Genres:               { multi_select: { options: [] } },
-	Labels:               { multi_select: { options: [] } },
+	"Duration in minutes": { number: { format: "number" } },
 	"Track Count":        { number: { format: "number" } },
-	"Duration minutes":   { number: { format: "number" } },
-	Spotify:              { url: {} },
+	Label:                { multi_select: { options: [] } },
+	Genres:               { multi_select: { options: [] } },
+	"Spotify Link":       { url: {} },
+	Status:               { select: { options: STATUS_OPTIONS } },
+	"Added Date":         { date: {} },
+	"Listened Date":      { date: {} },
+	Rating:               { select: { options: RATING_OPTIONS } },
+	Review:               { rich_text: {} },
 };
+
+const PROPERTY_ORDER = [
+	"Artist",
+	"Kind",
+	"Release Date",
+	"Duration in minutes",
+	"Track Count",
+	"Label",
+	"Genres",
+	"Spotify Link",
+	"Status",
+	"Added Date",
+	"Listened Date",
+	"Rating",
+	"Review",
+];
 
 export function viewPayloads(databaseId: string, dataSourceId: string) {
 	const galleryConfig = {
@@ -78,7 +94,10 @@ export function viewPayloads(databaseId: string, dataSourceId: string) {
 		{
 			database_id: databaseId, data_source_id: dataSourceId,
 			name: "All Albums", type: "table",
-			configuration: { type: "table" },
+			configuration: {
+				type:       "table",
+				properties: PROPERTY_ORDER.map((property_id) => ({ property_id, visible: true })),
+			},
 			sorts: [{ property: "Added Date", direction: "descending" }],
 		},
 	];

@@ -70,7 +70,7 @@ async function* pages(notion: Client, dataSourceId: string): AsyncGenerator<Albu
 				kind: normalizeKind(props.Kind?.select?.name),
 				hasMeta: Boolean(props["Release Date"]?.date),
 				hasCover: Boolean(p.cover),
-				hasSpotify: Boolean(props.Spotify?.url),
+				hasSpotify: Boolean(props["Spotify Link"]?.url),
 			};
 		}
 		cursor = r.has_more ? r.next_cursor ?? undefined : undefined;

@@ -41,11 +41,11 @@ export function buildAlbumProps(entry: ReleaseEntry) {
 export function buildMetaProps(meta: AlbumMeta | null) {
 	if (!meta) return {};
 	const props: Record<string, any> = {
-		Genres:             multiSelect(meta.genres),
-		Labels:             multiSelect(meta.labels),
-		"Track Count":      numberProp(meta.trackCount),
-		"Duration minutes": numberProp(meta.durationMins),
-		Spotify:            urlProp(meta.spotifyUrl),
+		Label:                 multiSelect(meta.labels),
+		Genres:                multiSelect(meta.genres),
+		"Track Count":         numberProp(meta.trackCount),
+		"Duration in minutes": numberProp(meta.durationMins),
+		"Spotify Link":        urlProp(meta.spotifyUrl),
 	};
 	if (meta.releaseDate) props["Release Date"] = { date: { start: meta.releaseDate } };
 	return props;
