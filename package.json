@@ -2,7 +2,13 @@
 	"name": "record-club-notion-sync",
 	"version": "0.1.0",
 	"private": true,
-	"description": "Sync your record.club queue, rotation, and listened ratings into a Notion database.",
+	"description": "Sync your record.club queue and listened ratings into a Notion database.",
+	"author": "Riccardo Erra",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/riccardoerra/record-club-notion-sync.git"
+	},
 	"scripts": {
 		"build": "tsc",
 		"check": "tsc -p tsconfig.check.json",

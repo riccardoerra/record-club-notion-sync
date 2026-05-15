@@ -306,9 +306,7 @@ async function main() {
 			? `Would reuse existing database ${C.bold("💿 Albums")} (from .env)`
 			: `Would create ${C.bold("💿 Albums")}`);
 		ok("Would create/update views: Queue, Listened, All Albums");
-	} else
-
-	if (databaseId) {
+	} else if (databaseId) {
 		// Resume path: DB already exists from a previous run.
 		try {
 			const db = await notion.request<any>({ path: `databases/${databaseId}`, method: "get" });
