@@ -19,6 +19,7 @@ import { SCHEMA, viewPayloads } from "../src/albums-schema";
 const FORCE      = process.argv.includes("--force");
 const SKIP_DEPLOY = process.argv.includes("--no-deploy"); // useful for testing
 const PREVIEW    = process.argv.includes("--preview");
+const DRY_RUN    = process.argv.includes("--dry-run");
 
 // ---------- Pretty-print helpers ------------------------------------------
 
@@ -184,9 +185,12 @@ async function main() {
 
 	console.log(C.bold("\nrecord.club → Notion setup"));
 	console.log(C.dim("─────────────────────────"));
+	if (DRY_RUN) {
+		info("Dry run mode: prompts are real, but validation, .env writes, Notion changes, and deploy are skipped.");
+	}
 
 	// ---------- Preflight: ntn CLI ----------
-	if (!hasNtn()) {
+	if (!DRY_RUN && !hasNtn()) {
 		bail(
 			`The "ntn" CLI is required and not found in your PATH.\n` +
 			`Install it with:\n\n` +
@@ -194,15 +198,15 @@ async function main() {
 			`Then re-run \`npm run setup\`.`,
 		);
 	}
-	if (!ntnAuthed()) runNtn(["login"]);
+	if (!DRY_RUN && !ntnAuthed()) runNtn(["login"]);
 
 	// ---------- Force handling ----------
-	if (FORCE && fs.existsSync(".env")) {
+	if (!DRY_RUN && FORCE && fs.existsSync(".env")) {
 		fs.unlinkSync(".env");
 		ok(`Removed existing .env (--force)`);
 	}
 
-	const existing = readDotenv(".env");
+	const existing = DRY_RUN ? {} : readDotenv(".env");
 	const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 	// ---------- Step 1 — Notion token ----------
@@ -211,7 +215,7 @@ async function main() {
 	console.log(C.dim(`  → tick Notion API + Workers → Create → copy`));
 	let token = existing.NOTION_API_TOKEN ?? "";
 	if (!token) token = await prompt(rl, "Token");
-	if (!token.startsWith("ntn_")) bail(`Token doesn't look right — should start with "ntn_".`);
+	if (!DRY_RUN && !token.startsWith("ntn_")) bail(`Token doesn't look right — should start with "ntn_".`);
 
 	const notion = new Client({ auth: token, notionVersion: NOTION_VERSION });
 
@@ -222,7 +226,9 @@ async function main() {
 	//   • Internal integ. → bot.owner.type === "workspace"  (can't create
 	//                       at workspace root; needs a parent page)
 	let tokenIsPat = false;
-	try {
+	if (DRY_RUN) {
+		ok("Skipped Notion token validation");
+	} else try {
 		const me = await notion.request<any>({ path: "users/me", method: "get" });
 		tokenIsPat = me?.bot?.owner?.type === "user";
 		const who = tokenIsPat
@@ -239,6 +245,10 @@ async function main() {
 	while (true) {
 		recordClubUser = await prompt(rl, "Username", recordClubUser);
 		if (!recordClubUser) { fail("Please enter your record.club username."); continue; }
+		if (DRY_RUN) {
+			ok("Skipped record.club RSS validation");
+			break;
+		}
 		const check = await checkRecordClubUser(recordClubUser);
 		if (check.ok) {
 			ok(`Found ${check.itemCount ?? 0} recent activity items`);
@@ -266,6 +276,10 @@ async function main() {
 				fail("Both Spotify Client ID and Client Secret are required. Leave Spotify disabled if you want to skip this.");
 				continue;
 			}
+			if (DRY_RUN) {
+				ok("Skipped Spotify credential validation");
+				break;
+			}
 			const check = await checkSpotifyCredentials(spotifyClientId, spotifyClientSecret);
 			if (check.ok) {
 				ok("Spotify credentials validated");
@@ -284,6 +298,15 @@ async function main() {
 	let databaseId   = existing.ALBUMS_DATABASE_ID ?? "";
 	let dataSourceId = "";
 	let databaseUrl  = "";
+
+	if (DRY_RUN) {
+		databaseId = databaseId || "00000000-0000-0000-0000-000000000000";
+		databaseUrl = "https://www.notion.so/example-albums-database";
+		ok(databaseId === existing.ALBUMS_DATABASE_ID
+			? `Would reuse existing database ${C.bold("💿 Albums")} (from .env)`
+			: `Would create ${C.bold("💿 Albums")}`);
+		ok("Would create/update views: Queue, Listened, All Albums");
+	} else
 
 	if (databaseId) {
 		// Resume path: DB already exists from a previous run.
@@ -376,22 +399,28 @@ async function main() {
 	}
 
 	// Refresh .env (capturing any token / username updates from the resume path).
-	writeDotenv(".env", {
-		NOTION_API_TOKEN:   token,
-		RECORD_CLUB_USER:   recordClubUser,
-		ALBUMS_DATABASE_ID: databaseId,
-		...(spotifyClientId && spotifyClientSecret ? {
-			SPOTIFY_CLIENT_ID:     spotifyClientId,
-			SPOTIFY_CLIENT_SECRET: spotifyClientSecret,
-		} : {}),
-	});
+	if (DRY_RUN) {
+		ok("Would write .env");
+	} else {
+		writeDotenv(".env", {
+			NOTION_API_TOKEN:   token,
+			RECORD_CLUB_USER:   recordClubUser,
+			ALBUMS_DATABASE_ID: databaseId,
+			...(spotifyClientId && spotifyClientSecret ? {
+				SPOTIFY_CLIENT_ID:     spotifyClientId,
+				SPOTIFY_CLIENT_SECRET: spotifyClientSecret,
+			} : {}),
+		});
+	}
 
 	rl.close();
 
 	// ---------- Step 5 — Deploy worker ----------
 	step("Deploying worker");
 
-	if (SKIP_DEPLOY) {
+	if (DRY_RUN) {
+		info("Dry run mode; skipping the ntn deploy step.");
+	} else if (SKIP_DEPLOY) {
 		info(`--no-deploy passed; skipping the ntn deploy step.`);
 	} else {
 		// Create the worker record (no-op if workers.json already exists).

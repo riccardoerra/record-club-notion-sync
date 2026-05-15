@@ -9,6 +9,7 @@
 		"test": "tsx --test tests/*.test.ts",
 		"setup": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/setup.ts",
 		"setup:preview": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/setup.ts --preview",
+		"setup:dry-run": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/setup.ts --dry-run",
 		"backfill": "NODE_OPTIONS=--disable-warning=DEP0040 tsx scripts/backfill.ts"
 	},
 	"engines": {

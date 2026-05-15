@@ -48,6 +48,12 @@ To preview the setup flow without changing anything:
 npm run setup:preview
 ```
 
+To test the real interactive prompts with fake values and no validation, file writes, Notion changes, or deploy:
+
+```bash
+npm run setup:dry-run
+```
+
 ## Backfill Metadata
 
 To enrich albums that already exist in your database:
