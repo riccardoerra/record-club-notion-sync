@@ -2,6 +2,8 @@
 
 Notion Worker that syncs record.club queue and listened/rated diary activity into a Notion Albums database. See [README.md](./README.md) for user-facing docs.
 
+This is the single shared instruction file for coding agents. Do not add separate Claude/Codex-specific instruction files unless the repo genuinely needs tool-specific behavior.
+
 ## Rules
 
 - Keep parser logic pure in `src/record-club.ts`.
