@@ -2,33 +2,24 @@
 
 # record.club → Notion
 
-Sync your public record.club activity RSS feed into a Notion Albums database. The worker imports queue additions and listened/rated diary activity with cover images, ratings, listened dates, and review text when present. New albums are enriched with MusicBrainz metadata when a confident match is available.
+Sync your public record.club activity RSS feed into a Notion Albums database. Imports queue additions and listened/rated diary activity, then enriches albums with covers and MusicBrainz metadata when available. Runs on Notion Workers, no server or cron required.
 
 This project is adapted from Brian Lovin's [`letterboxd-notion-sync`](https://github.com/brianlovin/letterboxd-notion-sync) Notion Worker pattern. The source integration and Notion schema have been replaced for record.club albums.
 
-## What Syncs
+## What syncs
 
 - Queue activity → `Status = Queued`
 - Listened/rated diary activity → `Status = Listened`
-- MusicBrainz enrichment → release date, labels, track count, duration, genres when available, Spotify link, and fallback cover art.
-- Matching is based on kind, artist, and title, so a later listened/rated entry updates an earlier queued row.
+- Metadata → release date, labels, track count, duration, genres, Spotify link, and cover art when available
 
-record.club RSS is activity-based. It does not expose queue removals or a complete current queue snapshot, so this sync does not mirror deletions.
+Matching is based on kind, artist, and title, so a later listened/rated entry updates an earlier queued row.
 
-Important: record.club only emits the listened/rated RSS item when the release is added to your diary/reviews activity. Marking something as listened is not enough by itself. A diary entry can have an empty review body, but it needs at least a rating and listened date to appear as listened/rated RSS activity.
+## Limitations
 
-Metadata note: the worker does not scrape record.club release pages because those pages can be Cloudflare-protected outside a browser. MusicBrainz is used for stable server-side enrichment instead. Genres and external links depend on what MusicBrainz has for a release, so they are intentionally best-effort.
-
-## Direction of Sync
-
-This is a one-way sync from record.club activity into Notion. It cannot add
-albums to your record.club queue from Notion, Pitchfork, or any other external
-list because the public record.club feed is read-only and record.club does not
-provide a supported write API for queue changes.
-
-A separate importer could create Notion rows from another source, such as
-Pitchfork's weekly album lists, but those rows would only exist in Notion and
-would not update your record.club queue.
+- One-way sync only: record.club has a public read feed, but no supported write API.
+- Queue removals are not mirrored because RSS does not expose the current full queue.
+- Listened/rated albums sync only when record.club emits diary/review activity with a rating and listened date. Simply marking a release as listened is not enough.
+- Metadata is best-effort via MusicBrainz and Spotify; genres and external links depend on upstream data.
 
 ## Setup
 
@@ -44,27 +35,10 @@ npm run setup
 
 Setup asks for a Notion Personal Access Token, your record.club username, and optional Spotify credentials. It creates a `💿 Albums` database with Queue / Listened / All Albums views, writes `.env`, deploys the worker, and triggers the first sync.
 
-To preview the setup flow without changing anything:
-
 ```bash
-npm run setup:preview
+npm run setup:preview # show the setup flow
+npm run setup:dry-run # test prompts with fake values
 ```
-
-To test the real interactive prompts with fake values and no validation, file writes, Notion changes, or deploy:
-
-```bash
-npm run setup:dry-run
-```
-
-## Backfill Metadata
-
-To enrich albums that already exist in your database:
-
-```bash
-npm run backfill
-```
-
-Use `npm run backfill -- --force` to re-check rows that already have MusicBrainz metadata.
 
 ## Lazymode
 
@@ -78,8 +52,6 @@ Use my record.club username YOUR_USERNAME. Guide me through the Notion token / N
 
 The agent should clone the repo, install dependencies, run `npm run setup`, help you provide a Notion token, deploy the worker, and trigger the first sync.
 
-For listened/rated albums to sync, add the release to your record.club diary/reviews activity with a rating and listened date. Simply marking a release as listened does not emit the RSS event this worker uses.
-
 ## Maintenance
 
 ```bash
@@ -87,6 +59,7 @@ ntn workers sync trigger recordClubSync
 ntn workers sync status
 ntn workers runs list
 npm run backfill
+npm run backfill -- --force
 ```
 
 Edit `schedule: "1d"` in `src/index.ts` and run `ntn workers deploy` to change the cadence.
