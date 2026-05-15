@@ -1,8 +1,8 @@
+<img width="2032" height="1201" alt="record.club to Notion sync" src="assets/notion-albums-screenshot.png" />
+
 # record.club → Notion
 
 Sync your public record.club activity RSS feed into a Notion Albums database. The worker imports queue additions and listened/rated diary activity with cover images, ratings, listened dates, and review text when present. New albums are enriched with MusicBrainz metadata when a confident match is available.
-
-![Notion Albums database with queue cards and album detail panel](assets/notion-albums-screenshot.png)
 
 This project is adapted from Brian Lovin's [`letterboxd-notion-sync`](https://github.com/brianlovin/letterboxd-notion-sync) Notion Worker pattern. The source integration and Notion schema have been replaced for record.club albums.
 
