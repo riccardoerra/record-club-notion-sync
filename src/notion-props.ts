@@ -41,7 +41,7 @@ export function buildAlbumProps(entry: ReleaseEntry) {
 export function buildMetaProps(meta: AlbumMeta | null) {
 	if (!meta) return {};
 	const props: Record<string, any> = {
-		Label:                 multiSelect(meta.labels),
+		Labels:                multiSelect(meta.labels),
 		Genres:                multiSelect(meta.genres),
 		"Track Count":         numberProp(meta.trackCount),
 		"Duration in minutes": numberProp(meta.durationMins),

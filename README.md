@@ -8,7 +8,7 @@ This project is adapted from Brian Lovin's [`letterboxd-notion-sync`](https://gi
 
 - Queue activity → `Status = Queued`
 - Listened/rated diary activity → `Status = Listened`
-- MusicBrainz enrichment → release date, label, track count, duration, genres when available, Spotify link, and fallback cover art.
+- MusicBrainz enrichment → release date, labels, track count, duration, genres when available, Spotify link, and fallback cover art.
 - Matching is based on kind, artist, and title, so a later listened/rated entry updates an earlier queued row.
 
 record.club RSS is activity-based. It does not expose queue removals or a complete current queue snapshot, so this sync does not mirror deletions.
